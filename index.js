@@ -36,50 +36,20 @@ async function run() {
       
  const petCollection = client.db("PetZone").collection("Petdata");
  
-    //   // Send a ping to confirm a successful connection
-    //    app.post("/userData", async (req, res) => {
-    //      const addData = req.body;
-        
-    //      const result = await bcbhsCollection.insertOne(addData);
-    //      res.send(result);
-    //      console.log(result);
-    //    });
- 
+
 
        app.get("/petdata", async (req, res) => {
         const result = await petCollection.find().toArray();
         res.send(result);
        });
-    //    app.get("/eventData", async (req, res) => {
-    //     const result = await eventCollection.find().toArray();
-    //     res.send(result);
-    //    });
-    
-    // app.get("/eventData/:_id", async (req, res) => {
-    //   const id = req.params._id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const result = await eventCollection.findOne(query);
-    //   res.send(result);
-    // });
-    // app.get("/userData/:_id", async (req, res) => {
-    //   const id = req.params._id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const result = await bcbhsCollection.findOne(query);
-    //   res.send(result);
-    // });
-
-    // app.get("/userData", async (req, res) => {
-    //   let query = {};
-    //   const name = req.query.serviceName;
-    //   if (name) {
-    //     query.serviceName = name;
-    //   }
-
-    //   const cursor = bcbhsCollection.find(query);
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
-    
+  
+    app.get("/petdata/:_id", async (req, res) => {
+      const id = req.params._id;
+      const query = { _id: new ObjectId(id) };
+      const result = await petCollection.findOne(query);
+      res.send(result);
+    });
+  
  
   
 
