@@ -27,7 +27,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
 
     const petCollection = client.db("PetZone").collection("Petdata");
-    const PetAccessories = client.db("PetZone").collection("PetAccessories");
+    const petAccessories = client.db("PetZone").collection("PetAccessories");
     const userCollection = client.db("PetZone").collection("users");
     const reviewsCollection = client.db("PetZone").collection("reviews");
     const MyCartCollection = client.db("PetZone").collection("mycart");
@@ -78,12 +78,57 @@ async function run() {
       const result = await petCollection.find().toArray();
       res.send(result);
     });
-
-    //all pet shop data
+    // Getting Accessories
     app.get("/petshop", async (req, res) => {
-      const result = await PetAccessories.find().toArray();
+      const result = await petAccessories.find().toArray();
       res.send(result);
     });
+    // Posting Accessories
+    app.post('/petshop', async (req,res) => {
+      const newProduct = req.body;
+      const result = await petAccessories.insertOne(newProduct);
+      res.send(result);
+    })
+    // Delete Accessories
+    app.delete('/petshop/:id', async(req,res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await petAccessories.deleteOne(query);
+      res.send(result);
+    })
+
+
+    // Read data to Update Accessories
+    app.get("/petshop/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await petAccessories.findOne(query);
+      res.send(result);
+    })
+
+    // Update Data for Accessories
+    app.put("/petshop/:id", async(req,res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const options = { upsert: true};
+      const updatedAccessories = req.body;
+      const accessories = {
+        $set: {
+          name: updatedAccessories.name,
+          image: updatedAccessories.image,
+          category: updatedAccessories.category,
+          animal: updatedAccessories.animal,
+          description: updatedAccessories.description,
+          price: updatedAccessories.price
+        }
+      }
+      const result = await petAccessories.updateOne(filter, accessories,options);
+      res.send(result);
+    })
+
+
+
+
 
     app.get("/petdata/:_id", async (req, res) => {
       const id = req.params._id;
@@ -92,13 +137,7 @@ async function run() {
       res.send(result);
     });
 
-    //pet shop data
-    app.get("/petshop/:_id", async (req, res) => {
-      const id = req.params._id;
-      const query = { _id: new ObjectId(id) };
-      const result = await PetAccessories.findOne(query);
-      res.send(result);
-    });
+
 
     
 
