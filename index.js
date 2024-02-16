@@ -31,6 +31,7 @@ async function run() {
     const userCollection = client.db("PetZone").collection("users");
     const reviewsCollection = client.db("PetZone").collection("reviews");
     const MyCartCollection = client.db("PetZone").collection("mycart");
+    const bookingCollection = client.db("PetZone").collection("BookingCollection");
 
 
 
@@ -84,33 +85,32 @@ async function run() {
       res.send(result);
     });
     // Posting Accessories
-    app.post('/petshop', async (req,res) => {
+    app.post("/petshop", async (req, res) => {
       const newProduct = req.body;
       const result = await petAccessories.insertOne(newProduct);
       res.send(result);
-    })
+    });
     // Delete Accessories
-    app.delete('/petshop/:id', async(req,res) =>{
+    app.delete("/petshop/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const result = await petAccessories.deleteOne(query);
       res.send(result);
-    })
-
+    });
 
     // Read data to Update Accessories
     app.get("/petshop/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const result = await petAccessories.findOne(query);
       res.send(result);
-    })
+    });
 
     // Update Data for Accessories
-    app.put("/petshop/:id", async(req,res) => {
+    app.put("/petshop/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)}
-      const options = { upsert: true};
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
       const updatedAccessories = req.body;
       const accessories = {
         $set: {
@@ -119,16 +119,16 @@ async function run() {
           category: updatedAccessories.category,
           animal: updatedAccessories.animal,
           description: updatedAccessories.description,
-          price: updatedAccessories.price
-        }
-      }
-      const result = await petAccessories.updateOne(filter, accessories,options);
+          price: updatedAccessories.price,
+        },
+      };
+      const result = await petAccessories.updateOne(
+        filter,
+        accessories,
+        options
+      );
       res.send(result);
-    })
-
-
-
-
+    });
 
     app.get("/petdata/:_id", async (req, res) => {
       const id = req.params._id;
@@ -176,16 +176,24 @@ async function run() {
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
+<<<<<<< HEAD
+      const updatedDoc = {
+        $set: {
+          role: "admin",
+=======
       const user = await userCollection.findOne(filter);
       const updatedRole = user.role === "admin" ? "user" : "admin";
       const updatedDoc = {
         $set: {
           role: updatedRole,
+>>>>>>> cd9ae32fcc544331617f6b79ad589e813a4a6b74
         },
       };
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
+<<<<<<< HEAD
+=======
 
     //add pet
     app.post("/petdata", async (req, res) => {
@@ -194,6 +202,7 @@ async function run() {
       const result = await petCollection.insertOne(newPet);
       res.send(result);
     });
+>>>>>>> cd9ae32fcc544331617f6b79ad589e813a4a6b74
 
     app.post("/mycart", async (req, res) => {
       const mycart = req.body;
@@ -283,6 +292,53 @@ async function run() {
       const result = await MyCartCollection.find().toArray();
       const userCart = result.filter((item) => item.email === userEmail);
       res.json(userCart);
+    });
+
+    // Booking APIs
+    // READ Bookings
+    app.get("/bookings", async (req, res) => {
+      const result = await bookingCollection.find().toArray();
+      res.send(result);
+    });
+    // POST Bookings
+    app.post("/bookings", async (req, res) => {
+      const booking = req.body;
+      const result = await bookingCollection.insertOne(booking);
+      console.log(result);
+      res.send(result);
+    });
+
+    // READ Booking Data by ID
+    app.get("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.findOne(query);
+      res.send(result);
+    });
+    // PATCH Accepting Bookings
+
+    app.patch("/bookings/accept/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: "Accepted",
+        },
+      };
+      const result = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+    // PATCH Rejecting Bookings
+    app.patch("/bookings/reject/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: "Rejected",
+        },
+      };
+      const result = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(result);
     });
 
     client.db("admin").command({ ping: 1 });
