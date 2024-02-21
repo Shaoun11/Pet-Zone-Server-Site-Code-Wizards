@@ -31,21 +31,20 @@ async function run() {
     const userCollection = client.db("PetZone").collection("users");
     const reviewsCollection = client.db("PetZone").collection("reviews");
     const MyCartCollection = client.db("PetZone").collection("mycart");
+    const paymentCollection = client.db("PetZone").collection("payments");  
     const bookingCollection = client.db("PetZone").collection("BookingCollection");
-
-
 
        // Posting Accessories
        app.post('/petshop', async (req,res) => {
         const newProduct = req.body;
-        const result = await PetAccessories.insertOne(newProduct);
+        const result = await petAccessories.insertOne(newProduct);
         res.send(result);
       })
       // Delete Accessories
       app.delete('/petshop/:id', async(req,res) =>{
         const id = req.params.id;
         const query = {_id: new ObjectId(id)}
-        const result = await PetAccessories.deleteOne(query);
+        const result = await petAccessories.deleteOne(query);
         res.send(result);
       })
   
@@ -67,7 +66,7 @@ async function run() {
             price: updatedAccessories.price
           }
         }
-        const result = await PetAccessories.updateOne(filter, accessories,options);
+        const result = await petAccessories.updateOne(filter, accessories,options);
         res.send(result);
       })
   
@@ -85,32 +84,33 @@ async function run() {
       res.send(result);
     });
     // Posting Accessories
-    app.post("/petshop", async (req, res) => {
+    app.post('/petshop', async (req,res) => {
       const newProduct = req.body;
       const result = await petAccessories.insertOne(newProduct);
       res.send(result);
-    });
+    })
     // Delete Accessories
-    app.delete("/petshop/:id", async (req, res) => {
+    app.delete('/petshop/:id', async(req,res) =>{
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
+      const query = {_id: new ObjectId(id)}
       const result = await petAccessories.deleteOne(query);
       res.send(result);
-    });
+    })
+
 
     // Read data to Update Accessories
     app.get("/petshop/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
+      const query = {_id: new ObjectId(id)}
       const result = await petAccessories.findOne(query);
       res.send(result);
-    });
+    })
 
     // Update Data for Accessories
-    app.put("/petshop/:id", async (req, res) => {
+    app.put("/petshop/:id", async(req,res) => {
       const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const options = { upsert: true };
+      const filter = {_id: new ObjectId(id)}
+      const options = { upsert: true};
       const updatedAccessories = req.body;
       const accessories = {
         $set: {
@@ -119,16 +119,16 @@ async function run() {
           category: updatedAccessories.category,
           animal: updatedAccessories.animal,
           description: updatedAccessories.description,
-          price: updatedAccessories.price,
-        },
-      };
-      const result = await petAccessories.updateOne(
-        filter,
-        accessories,
-        options
-      );
+          price: updatedAccessories.price
+        }
+      }
+      const result = await petAccessories.updateOne(filter, accessories,options);
       res.send(result);
-    });
+    })
+
+
+
+
 
     app.get("/petdata/:_id", async (req, res) => {
       const id = req.params._id;
@@ -176,24 +176,16 @@ async function run() {
     app.patch("/users/admin/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
-<<<<<<< HEAD
-      const updatedDoc = {
-        $set: {
-          role: "admin",
-=======
       const user = await userCollection.findOne(filter);
       const updatedRole = user.role === "admin" ? "user" : "admin";
       const updatedDoc = {
         $set: {
           role: updatedRole,
->>>>>>> cd9ae32fcc544331617f6b79ad589e813a4a6b74
         },
       };
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
-<<<<<<< HEAD
-=======
 
     //add pet
     app.post("/petdata", async (req, res) => {
@@ -202,20 +194,8 @@ async function run() {
       const result = await petCollection.insertOne(newPet);
       res.send(result);
     });
->>>>>>> cd9ae32fcc544331617f6b79ad589e813a4a6b74
 
-    app.post("/mycart", async (req, res) => {
-      const mycart = req.body;
-      const result = await MyCartCollection.insertOne(mycart);
-      console.log(result);
-      res.send(result);
-    });
 
-    //my cart data
-    app.get("/mycart", async (req, res) => {
-      const result = await MyCartCollection.find().toArray();
-      res.send(result);
-    });
 
     //Accepted pet
     app.patch("/petdata/:id", async (req, res) => {
@@ -261,6 +241,48 @@ async function run() {
       res.send(result);
     })
 
+    //cart manage 
+    app.get("/payments", async (req, res) => {
+      const query = { email: req.params.email }
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+      console.log("payment info ", payment);
+      const query = {
+        _id: {
+          $in: payment.cartIds.map(id => new ObjectId(id))
+        }
+      }
+      const deleteResult = await MyCartCollection.deleteMany(query);
+      res.send({ paymentResult, deleteResult });
+    })   
+
+    app.get("/mycart", async (req, res) => {
+      const email = req.body.email;
+      const query = { email: email };
+      const result = await MyCartCollection.find(query).toArray();
+      res.send(result);
+    });
+ 
+    app.post("/mycart", async (req, res) => {
+      const cart = req.body;
+      const result = await MyCartCollection.insertOne(cart);
+      console.log(result);
+      res.send(result);
+    });
+
+    app.delete("/mycart/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await MyCartCollection.deleteOne(query);
+      res.send(result);
+    }) 
+
+
     // reviews
     app.get("/reviews", async (req, res) => {
       const result = await reviewsCollection.find().toArray();
@@ -286,6 +308,7 @@ async function run() {
       res.send(result);
     }); 
 
+   
     // New route to get cart by email
     app.get("/mycart/:email", async (req, res) => {
       const userEmail = req.params.email;
@@ -340,6 +363,10 @@ async function run() {
       const result = await bookingCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
+
+
+
+
 
     client.db("admin").command({ ping: 1 });
     console.log(
