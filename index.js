@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const stripe = require('stripe')("sk_test_51OK2mgGYIbORFhiIULSnSe0yCE1elq8GnEAzsYzxBwDIVGoBXBwokeqjaqxnhIa2DxSjXEMOxDNcy0PCM8ScbzaP00wFZXkThc");                 
+const stripe = require('stripe')("sk_test_51OK2mgGYIbORFhiIULSnSe0yCE1elq8GnEAzsYzxBwDIVGoBXBwokeqjaqxnhIa2DxSjXEMOxDNcy0PCM8ScbzaP00wFZXkThc");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
@@ -31,45 +31,45 @@ async function run() {
     const userCollection = client.db("PetZone").collection("users");
     const reviewsCollection = client.db("PetZone").collection("reviews");
     const MyCartCollection = client.db("PetZone").collection("mycart");
-    const paymentCollection = client.db("PetZone").collection("payments");  
+    const paymentCollection = client.db("PetZone").collection("payments");
     const bookingCollection = client.db("PetZone").collection("BookingCollection");
 
-       // Posting Accessories
-       app.post('/petshop', async (req,res) => {
-        const newProduct = req.body;
-        const result = await petAccessories.insertOne(newProduct);
-        res.send(result);
-      })
-      // Delete Accessories
-      app.delete('/petshop/:id', async(req,res) =>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await petAccessories.deleteOne(query);
-        res.send(result);
-      })
-  
-  
+    // Posting Accessories
+    app.post('/petshop', async (req, res) => {
+      const newProduct = req.body;
+      const result = await petAccessories.insertOne(newProduct);
+      res.send(result);
+    })
+    // Delete Accessories
+    app.delete('/petshop/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await petAccessories.deleteOne(query);
+      res.send(result);
+    })
 
-      // Update Data for Accessories
-      app.put("/petshop/:id", async(req,res) => {
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
-        const options = { upsert: true};
-        const updatedAccessories = req.body;
-        const accessories = {
-          $set: {
-            name: updatedAccessories.name,
-            image: updatedAccessories.image,
-            category: updatedAccessories.category,
-            animal: updatedAccessories.animal,
-            description: updatedAccessories.description,
-            price: updatedAccessories.price
-          }
+
+
+    // Update Data for Accessories
+    app.put("/petshop/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updatedAccessories = req.body;
+      const accessories = {
+        $set: {
+          name: updatedAccessories.name,
+          image: updatedAccessories.image,
+          category: updatedAccessories.category,
+          animal: updatedAccessories.animal,
+          description: updatedAccessories.description,
+          price: updatedAccessories.price
         }
-        const result = await petAccessories.updateOne(filter, accessories,options);
-        res.send(result);
-      })
-  
+      }
+      const result = await petAccessories.updateOne(filter, accessories, options);
+      res.send(result);
+    })
+
 
 
 
@@ -84,15 +84,15 @@ async function run() {
       res.send(result);
     });
     // Posting Accessories
-    app.post('/petshop', async (req,res) => {
+    app.post('/petshop', async (req, res) => {
       const newProduct = req.body;
       const result = await petAccessories.insertOne(newProduct);
       res.send(result);
     })
     // Delete Accessories
-    app.delete('/petshop/:id', async(req,res) =>{
+    app.delete('/petshop/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await petAccessories.deleteOne(query);
       res.send(result);
     })
@@ -101,16 +101,16 @@ async function run() {
     // Read data to Update Accessories
     app.get("/petshop/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await petAccessories.findOne(query);
       res.send(result);
     })
 
     // Update Data for Accessories
-    app.put("/petshop/:id", async(req,res) => {
+    app.put("/petshop/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId(id)}
-      const options = { upsert: true};
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
       const updatedAccessories = req.body;
       const accessories = {
         $set: {
@@ -122,7 +122,7 @@ async function run() {
           price: updatedAccessories.price
         }
       }
-      const result = await petAccessories.updateOne(filter, accessories,options);
+      const result = await petAccessories.updateOne(filter, accessories, options);
       res.send(result);
     })
 
@@ -139,7 +139,7 @@ async function run() {
 
 
 
-    
+
 
     //all user
     app.get("/users", async (req, res) => {
@@ -216,24 +216,6 @@ async function run() {
       const count = await petCollection.estimatedDocumentCount();
       res.send({ count });
     })
-  
-    //payment getway
-    app.post("/create-payment-intent", async (req, res) => {
-      const { price } = req.body;
-      const amount = parseInt(price * 100);
-      console.log(amount, "Amount inside the intent");
-    
-      const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount,
-          currency: "usd",
-          payment_method_types: ["card"]
-      });
-    
-      res.send({
-          clientSecret: paymentIntent.client_secret
-      })
-    })
-
 
     app.get('/products', async (req, res) => {
       const page = parseInt(req.query.page);
@@ -242,6 +224,24 @@ async function run() {
       const result = await petCollection.find().skip(page * size).limit(size).toArray();
       res.send(result);
     })
+
+    //payment getway
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      console.log(amount, "Amount inside the intent");
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"]
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
+
 
     //cart manage 
     app.get("/payments", async (req, res) => {
@@ -261,7 +261,7 @@ async function run() {
       }
       const deleteResult = await MyCartCollection.deleteMany(query);
       res.send({ paymentResult, deleteResult });
-    })   
+    })
 
     app.get("/mycart", async (req, res) => {
       const email = req.body.email;
@@ -269,7 +269,7 @@ async function run() {
       const result = await MyCartCollection.find(query).toArray();
       res.send(result);
     });
- 
+
     app.post("/mycart", async (req, res) => {
       const cart = req.body;
       const result = await MyCartCollection.insertOne(cart);
@@ -282,7 +282,7 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await MyCartCollection.deleteOne(query);
       res.send(result);
-    }) 
+    })
 
 
     // reviews
@@ -298,7 +298,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete('/reviews/:_id',  async (req, res) => {
+    app.delete('/reviews/:_id', async (req, res) => {
       const id = req.params._id;
       const query = { _id: new ObjectId(id) }
       const result = await reviewsCollection.deleteOne(query);
@@ -308,9 +308,9 @@ async function run() {
       const reviewItem = req.body;
       const result = await reviewsCollection.insertOne(reviewItem);
       res.send(result);
-    }); 
+    });
 
-   
+
     // New route to get cart by email
     app.get("/mycart/:email", async (req, res) => {
       const userEmail = req.params.email;
