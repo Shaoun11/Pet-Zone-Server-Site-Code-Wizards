@@ -271,6 +271,7 @@ async function run() {
       const email = req.body.email;
       const query = { email: email };
       const result = await MyCartCollection.find(query).toArray();
+      console.log(result);
       res.send(result);
     });
 
