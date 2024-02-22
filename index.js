@@ -152,7 +152,6 @@ async function run() {
     //user post
     app.post("/users", async (req, res) => {
       const user = req.body;
-      console.log(user);
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
       if (existingUser) {
