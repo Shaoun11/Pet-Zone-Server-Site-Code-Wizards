@@ -377,6 +377,15 @@ async function run() {
       res.json(result);
     });
 
+    // get a pending sell data by a unique Id.
+    app.get("/myallpet/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await petCollection.findOne(query);
+      res.send(result);
+    });
+
+
 
 
 
