@@ -385,6 +385,15 @@ async function run() {
       res.send(result);
     });
 
+    // post a data for pet sell.
+    app.post("/mypet", async (req, res) => {
+      const mypet = req.body;
+      const result = await petCollection.insertOne(mypet);
+      console.log(result);
+      res.send(result);
+    });
+
+
 
 
 
