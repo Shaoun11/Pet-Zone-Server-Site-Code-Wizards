@@ -185,6 +185,7 @@ async function run() {
         },
       };
       const result = await userCollection.updateOne(filter, updatedDoc);
+      console.log(result);
       res.send(result);
     });
 
