@@ -393,6 +393,31 @@ async function run() {
       res.send(result);
     });
 
+    // Update details for sells pet.
+    app.put('/myallpet/:id', async (req, res) => {
+      const id = req.params.id
+      const updateddetails = req.body
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: updateddetails.name,
+          image: updateddetails.image,
+          gender: updateddetails.gender,
+          age: updateddetails.age,
+          adoption_fee: updateddetails.adoption_fee,
+          species: updateddetails.species,
+          color: updateddetails.color,
+          breed: updateddetails.breed,
+          available: updateddetails.available,
+          description: updateddetails.description,
+        },
+      };
+      const result = await petCollection.updateOne(filter, updateDoc, options);
+      res.send(result)
+    })
+
+    
 
 
 
