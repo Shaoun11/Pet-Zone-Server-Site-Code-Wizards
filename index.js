@@ -249,6 +249,7 @@ async function run() {
     app.get("/payments", async (req, res) => {
       const query = { email: req.params.email }
       const result = await paymentCollection.find(query).toArray();
+      console.log(result);
       res.send(result);
     })
 
