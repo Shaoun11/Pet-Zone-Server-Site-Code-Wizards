@@ -223,6 +223,7 @@ async function run() {
       const size = parseInt(req.query.size);
 
       const result = await petCollection.find().skip(page * size).limit(size).toArray();
+      console.log(result);
       res.send(result);
     })
 
