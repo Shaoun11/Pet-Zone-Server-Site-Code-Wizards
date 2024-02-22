@@ -33,6 +33,7 @@ async function run() {
     const MyCartCollection = client.db("PetZone").collection("mycart");
     const paymentCollection = client.db("PetZone").collection("payments");  
     const bookingCollection = client.db("PetZone").collection("BookingCollection");
+    const MyPetCollection = client.db("PetZone").collection("mypet");
 
        // Posting Accessories
        app.post('/petshop', async (req,res) => {
@@ -125,10 +126,6 @@ async function run() {
       const result = await petAccessories.updateOne(filter, accessories,options);
       res.send(result);
     })
-
-
-
-
 
     app.get("/petdata/:_id", async (req, res) => {
       const id = req.params._id;
@@ -237,7 +234,7 @@ async function run() {
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
 
-      const result = await petCollection.find().skip(page * size).limit(size).toArray();
+      const result = await petCollection.find({ status: 'accepted' }).skip(page * size).limit(size).toArray();
       res.send(result);
     })
 
@@ -363,6 +360,16 @@ async function run() {
       const result = await bookingCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
+
+
+    // _____________________________________________________
+    //  Retrieve the pending sales data for pets.
+    app.get("/mypet", async (req, res) => {
+      const result = await petCollection.find({ status: 'pending' }).toArray();
+      res.send(result);
+    });
+
+
 
 
 
