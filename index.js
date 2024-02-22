@@ -369,6 +369,13 @@ async function run() {
       res.send(result);
     });
 
+    // get all pending sales data by a particular email.
+    app.get("/mypet/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { owner_email: email }
+      const result = await petCollection.find(query).toArray();
+      res.json(result);
+    });
 
 
 
