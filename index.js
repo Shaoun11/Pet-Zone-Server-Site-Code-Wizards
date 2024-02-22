@@ -255,6 +255,7 @@ async function run() {
 
     app.post("/payments", async (req, res) => {
       const payment = req.body;
+      console.log(payment);
       const paymentResult = await paymentCollection.insertOne(payment);
       console.log("payment info ", payment);
       const query = {
