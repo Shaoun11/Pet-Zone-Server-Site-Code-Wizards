@@ -165,6 +165,7 @@ async function run() {
       const email = req.params.email;
       const query = { email: email };
       const user = await userCollection.findOne(query);
+      console.log(user);
       let admin = false;
       if (user) {
         admin = user?.role === "admin";
