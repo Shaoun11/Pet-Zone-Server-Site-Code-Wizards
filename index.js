@@ -33,6 +33,7 @@ async function run() {
     const MyCartCollection = client.db("PetZone").collection("mycart");
     const paymentCollection = client.db("PetZone").collection("payments");
     const bookingCollection = client.db("PetZone").collection("BookingCollection");
+    const helpDeskCollection = client.db("PetZone").collection("helpdesk");
 
     // Posting Accessories
     app.post('/petshop', async (req, res) => {
@@ -312,6 +313,17 @@ async function run() {
     app.post("/reviews", async (req, res) => {
       const reviewItem = req.body;
       const result = await reviewsCollection.insertOne(reviewItem);
+      res.send(result);
+    });
+
+    app.get("/helpdesk", async (req, res) => {
+      const result = await helpDeskCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/helpdesk", async (req, res) => {
+      const helpItem = req.body;
+      const result = await helpDeskCollection.insertOne(helpItem);
       res.send(result);
     });
 
