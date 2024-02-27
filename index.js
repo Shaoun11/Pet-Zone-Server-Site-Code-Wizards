@@ -33,7 +33,7 @@ async function run() {
     const MyCartCollection = client.db("PetZone").collection("mycart");
     const paymentCollection = client.db("PetZone").collection("payments");  
     const bookingCollection = client.db("PetZone").collection("BookingCollection");
-    const MyPetCollection = client.db("PetZone").collection("mypet");
+    const sellerCollection = client.db("PetZone").collection("seller");
 
        // Posting Accessories
        app.post('/petshop', async (req,res) => {
@@ -426,7 +426,17 @@ async function run() {
     })
 
 
+    // _____________________________________________________
+    
 
+    app.post("/seller", async (req, res) => {
+      const sellerInfo = req.body;
+      console.log(sellerInfo);
+      const result = await sellerCollection.insertOne(sellerInfo);
+      res.send(result);
+    });
+
+    
     
 
 
