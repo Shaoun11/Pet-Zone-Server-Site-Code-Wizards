@@ -427,12 +427,42 @@ async function run() {
 
 
     // _____________________________________________________
-    
+    app.get("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let seller = false;
+      if (user) {
+        seller = user?.role === "seller";
+      }
+      res.send({ seller });
+    });
+
+
+    app.get("/seller", async (req, res) => {
+      const result = await sellerCollection.find().toArray();
+      res.send(result);
+    });
 
     app.post("/seller", async (req, res) => {
       const sellerInfo = req.body;
       console.log(sellerInfo);
       const result = await sellerCollection.insertOne(sellerInfo);
+      res.send(result);
+    });
+
+
+    app.patch("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const user = await userCollection.findOne(filter);
+      const updatedRole = user.role === "user" ? "seller" : "user";
+      const updatedDoc = {
+        $set: {
+          role: updatedRole,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
 
