@@ -426,7 +426,7 @@ async function run() {
     })
 
 
-    // _____________________________________________________
+    //check this user is seller or not?
     app.get("/users/seller/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -438,12 +438,13 @@ async function run() {
       res.send({ seller });
     });
 
-
+    //get all seller request
     app.get("/seller", async (req, res) => {
       const result = await sellerCollection.find().toArray();
       res.send(result);
     });
 
+    //post a seller info in sellerCollection.
     app.post("/seller", async (req, res) => {
       const sellerInfo = req.body;
       console.log(sellerInfo);
@@ -451,7 +452,7 @@ async function run() {
       res.send(result);
     });
 
-
+    //Seller to user then, user to seller.
     app.patch("/users/seller/:email", async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
@@ -466,9 +467,13 @@ async function run() {
       res.send(result);
     });
 
-    
-    
-
+    //Delete a seller request.
+    app.delete('/users/seller/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await sellerCollection.deleteOne(query);
+      res.send(result)
+    })
 
 
 
