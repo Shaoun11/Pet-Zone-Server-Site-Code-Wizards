@@ -33,7 +33,7 @@ async function run() {
     const MyCartCollection = client.db("PetZone").collection("mycart");
     const paymentCollection = client.db("PetZone").collection("payments");  
     const bookingCollection = client.db("PetZone").collection("BookingCollection");
-    const MyPetCollection = client.db("PetZone").collection("mypet");
+    const sellerCollection = client.db("PetZone").collection("seller");
 
        // Posting Accessories
        app.post('/petshop', async (req,res) => {
@@ -426,9 +426,54 @@ async function run() {
     })
 
 
+    //check this user is seller or not?
+    app.get("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let seller = false;
+      if (user) {
+        seller = user?.role === "seller";
+      }
+      res.send({ seller });
+    });
 
-    
+    //get all seller request
+    app.get("/seller", async (req, res) => {
+      const result = await sellerCollection.find().toArray();
+      res.send(result);
+    });
 
+    //post a seller info in sellerCollection.
+    app.post("/seller", async (req, res) => {
+      const sellerInfo = req.body;
+      console.log(sellerInfo);
+      const result = await sellerCollection.insertOne(sellerInfo);
+      res.send(result);
+    });
+
+    //Seller to user then, user to seller.
+    app.patch("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const user = await userCollection.findOne(filter);
+      const updatedRole = user.role === "user" ? "seller" : "user";
+      const updatedDoc = {
+        $set: {
+          role: updatedRole,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    //Delete a seller request.
+    app.delete('/users/seller/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await sellerCollection.deleteOne(query);
+      res.send(result)
+    })
 
 
 
