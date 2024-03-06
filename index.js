@@ -1,4 +1,5 @@
 const express = require("express");
+const SSLCommerzPayment = require('sslcommerz-lts');
 const cors = require("cors");
 const stripe = require('stripe')("sk_test_51OK2mgGYIbORFhiIULSnSe0yCE1elq8GnEAzsYzxBwDIVGoBXBwokeqjaqxnhIa2DxSjXEMOxDNcy0PCM8ScbzaP00wFZXkThc");                 
 require("dotenv").config();
@@ -22,6 +23,13 @@ const client = new MongoClient(uri, {
   },
 });
 
+
+const store_id = 'hexen65de5a8086a59'
+const store_passwd = 'hexen65de5a8086a59@ssl'
+const is_live = false //true for live, false for sandbox
+
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -33,9 +41,84 @@ async function run() {
     const MyCartCollection = client.db("PetZone").collection("mycart");
     const paymentCollection = client.db("PetZone").collection("payments");  
     const bookingCollection = client.db("PetZone").collection("BookingCollection");
+    const MyPetCollection = client.db("PetZone").collection("mypet");
+    const helpDeskCollection = client.db("PetZone").collection("helpdesk");
+    const orderCollection = client.db("PetZone").collection("order");
     const sellerCollection = client.db("PetZone").collection("seller");
+    const trans_id= new ObjectId().toString();
+      
+       //posting order
+       app.post('/order', async (req,res) => {
+        const order = req.body;
+        const data = {
+          total_amount: order?.totalPrice,
+          currency: order?.currency,
+          tran_id: trans_id, // use unique tran_id for each api call
+          success_url: `https://pet-zone-project-next-js.vercel.app/payment/success/${trans_id}`,
+          fail_url: 'http://localhost:3000/fail',
+          cancel_url: 'http://localhost:3030/cancel',
+          ipn_url: 'http://localhost:3030/ipn',
+          shipping_method: 'Courier',
+          product_name: 'Computer.',
+          product_category: 'Electronic',
+          product_profile: 'general',
+          cus_name: order?.name,
+          cus_email: order?.email,
+          cus_add1: order?.address,
+          cus_add2: 'Dhaka',
+          cus_city: 'Dhaka',
+          cus_state: 'Dhaka',
+          cus_postcode: '1000',
+          cus_country: 'Bangladesh',
+          cus_phone: order?.number,
+          cus_fax: '01711111111',
+          ship_name: 'Customer Name',
+          ship_add1: 'Dhaka',
+          ship_add2: 'Dhaka',
+          ship_city: 'Dhaka',
+          ship_state: 'Dhaka',
+          ship_postcode: 1000,
+          ship_country: 'Bangladesh',
+      };
+      const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
+      sslcz.init(data).then(apiResponse => {
+          // Redirect the user to payment gateway
+          let GatewayPageURL = apiResponse.GatewayPageURL
+          res.send({url:GatewayPageURL})
+          const finalOrder={transationID:trans_id,paidStatus:false, cus_email: order?.email,cus_name: order?.name,cus_add: order?.address,cus_phone: order?.number,};
+          const result=orderCollection.insertOne(finalOrder)
+          console.log('Redirecting to: ', GatewayPageURL)
+      });
+      app.post("/payment/success/:tranID",async(req,res)=>{
+        console.log(req.params.tranID);
+        const result=await orderCollection.updateOne({transationID:req.params.tranID},{
+         $set:{
+          paidStatus:true,
+         } 
+        }
+        );
+  
+        if(result.modifiedCount>0)
+        res.redirect(`https://pet-zone-project-code-wizads-ecru.vercel.app/success`)
+      });
 
-       // Posting Accessories
+      app.post("/payment/fail/:tranID",async(req,res)=>{
+       const result=await orderCollection.deleteOne({transationID:req.params.tranID})
+       if (result.deletedCount) {
+        res.redirect(`https://pet-zone-project-code-wizads-ecru.vercel.app/fail`)
+       }
+      })
+
+        console.log(data);
+      })
+
+      //all order 
+         
+    app.get("/order", async (req, res) => {
+      const result = await orderCollection.find().toArray();
+      res.send(result);
+    });
+       // Posting Accessories  
        app.post('/petshop', async (req,res) => {
         const newProduct = req.body;
         const result = await petAccessories.insertOne(newProduct);
@@ -70,9 +153,6 @@ async function run() {
         const result = await petAccessories.updateOne(filter, accessories,options);
         res.send(result);
       })
-  
-
-
 
     //all pet data
     app.get("/petdata", async (req, res) => {
@@ -361,6 +441,99 @@ async function run() {
       res.send(result);
     });
 
+    //helpdesk
+
+    app.get("/helpdesk", async (req, res) => {
+      const result = await helpDeskCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/helpdesk", async (req, res) => {
+      const helpItem = req.body;
+      const result = await helpDeskCollection.insertOne(helpItem);
+      res.send(result);
+    });
+  
+    //helpdesk like future
+    app.put("/helpdesk/like/:id", async (req, res) => {
+      const userId = req.body.userId;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $addToSet: {
+          like: userId
+        }
+      }
+      const result = await helpDeskCollection.findOneAndUpdate(filter, updatedDoc, { new: true });
+      res.send(result);
+    });
+
+    app.put("/helpdesk/unlike/:id", async (req, res) => {
+      const userId = req.body.userId;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $pull: {
+          like: userId
+        }
+      }
+      const result = await helpDeskCollection.findOneAndUpdate(filter, updatedDoc, { new: true });
+      res.send(result);
+    });
+
+    app.delete("/helpdesk/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await helpDeskCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    //comment code
+
+    app.put("/helpdesk/addcomment", async (req, res) => {
+      const { id, comment, postedTime, userId, userName, userPhoto } = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const commentId = new ObjectId();
+      console.log("filter", filter);
+      console.log("commentId", commentId);
+      const updatedDoc = {
+        $push: {
+          comment: {
+            commentId,
+            text: comment,
+            postedTime,
+            postedBy: {
+              userId,
+              userName,
+              userPhoto
+            }
+          }
+        }
+      }
+      console.log("updated doc", updatedDoc);
+      await helpDeskCollection.findOneAndUpdate(filter, updatedDoc);
+      const result = await helpDeskCollection.findOne(filter);
+      console.log("Result", result);
+      res.send(result);
+    })
+
+    app.put("/helpdesk/removecomment/:postId/:commentId", async (req, res) => {
+      const postId = req.params.postId;
+      const commentId = req.params.commentId;
+      console.log("postId:", postId);
+      console.log("commentId:", commentId);
+      const filter = { _id: new ObjectId(postId) };
+      console.log("filter", filter);
+      const updatedDoc = {
+        $pull: {
+          comment: { commentId: new ObjectId(commentId) }
+        }
+      }
+      await helpDeskCollection.findOneAndUpdate(filter, updatedDoc);
+      const result = await helpDeskCollection.findOne(filter);
+      res.send(result);
+    })
+
 
     // _____________________________________________________
     //  Retrieve the pending sales data for pets.
@@ -426,54 +599,57 @@ async function run() {
     })
 
 
-    //check this user is seller or not?
-    app.get("/users/seller/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      let seller = false;
-      if (user) {
-        seller = user?.role === "seller";
-      }
-      res.send({ seller });
-    });
+//check this user is seller or not?
+app.get("/users/seller/:email", async (req, res) => {
+  const email = req.params.email;
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  let seller = false;
+  if (user) {
+    seller = user?.role === "seller";
+  }
+  res.send({ seller });
+});
 
-    //get all seller request
-    app.get("/seller", async (req, res) => {
-      const result = await sellerCollection.find().toArray();
-      res.send(result);
-    });
+//get all seller request
+app.get("/seller", async (req, res) => {
+  const result = await sellerCollection.find().toArray();
+  res.send(result);
+});
 
-    //post a seller info in sellerCollection.
-    app.post("/seller", async (req, res) => {
-      const sellerInfo = req.body;
-      console.log(sellerInfo);
-      const result = await sellerCollection.insertOne(sellerInfo);
-      res.send(result);
-    });
+//post a seller info in sellerCollection.
+app.post("/seller", async (req, res) => {
+  const sellerInfo = req.body;
+  console.log(sellerInfo);
+  const result = await sellerCollection.insertOne(sellerInfo);
+  res.send(result);
+});
 
-    //Seller to user then, user to seller.
-    app.patch("/users/seller/:email", async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
-      const user = await userCollection.findOne(filter);
-      const updatedRole = user.role === "user" ? "seller" : "user";
-      const updatedDoc = {
-        $set: {
-          role: updatedRole,
-        },
-      };
-      const result = await userCollection.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+//Seller to user then, user to seller.
+app.patch("/users/seller/:email", async (req, res) => {
+  const email = req.params.email;
+  const filter = { email: email };
+  const user = await userCollection.findOne(filter);
+  const updatedRole = user.role === "user" ? "seller" : "user";
+  const updatedDoc = {
+    $set: {
+      role: updatedRole,
+    },
+  };
+  const result = await userCollection.updateOne(filter, updatedDoc);
+  res.send(result);
+});
 
-    //Delete a seller request.
-    app.delete('/users/seller/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
-      const result = await sellerCollection.deleteOne(query);
-      res.send(result)
-    })
+//Delete a seller request.
+app.delete('/users/seller/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) }
+  const result = await sellerCollection.deleteOne(query);
+  res.send(result)
+})
+
+    
+
 
 
 
